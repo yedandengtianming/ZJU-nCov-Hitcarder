@@ -139,10 +139,10 @@ class HitCarder(object):
         new_info['szgjcs'] = ""
         new_info["internship"] = 1
 
-        ocr = ddddocr.DdddOcr(show_ad=False)
-        resp = self.sess.get(self.captcha_url, headers=self.headers)
-        captcha = ocr.classification(resp.content)
-        new_info['verifyCode'] = captcha
+        #ocr = ddddocr.DdddOcr(show_ad=False)
+        #resp = self.sess.get(self.captcha_url, headers=self.headers)
+        #captcha = ocr.classification(resp.content)
+        #new_info['verifyCode'] = captcha
         # 2021.08.05 Fix 2
         magics = re.findall(r'"([0-9a-f]{32})":\s*"([^\"]+)"', html)
         for item in magics:
