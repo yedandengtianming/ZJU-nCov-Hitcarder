@@ -97,10 +97,9 @@ class HitCarder(object):
         return False
 
     def get_info(self, html=None):
-        """Get hit card info, which is the old info with updated new time."""
+        """Get hitcard info, which is the old info with updated new time."""
         if not html:
-            time.sleep(1)
-            res = self.sess.get(self.base_url)
+            res = self.sess.get(self.base_url, headers=self.headers)
             html = res.content.decode()
 
         try:
@@ -110,41 +109,46 @@ class HitCarder(object):
             else:
                 raise RegexMatchError("未发现缓存信息，请先至少手动成功打卡一次再运行脚本")
 
-            def_info = json.loads(re.findall(r'def = ({[^\n]+})', html)[0])
-            magic_code = re.findall(
-                r'"([0-9a-z]{32})": "([0-9]{10})","([0-9a-z]{32})":"([0-9a-z]{32})"', html)[0]
-            magic_code_group = {
-                magic_code[0]: magic_code[1],
-                magic_code[2]: magic_code[3]
-            }
+            new_info_tmp = json.loads(re.findall(r'def = ({[^\n]+})', html)[0])
+            new_id = new_info_tmp['id']
+            name = re.findall(r'realname: "([^\"]+)",', html)[0]
+            number = re.findall(r"number: '([^\']+)',", html)[0]
+        except IndexError:
+            raise RegexMatchError('Relative info not found in html with regex')
+        except json.decoder.JSONDecodeError:
+            raise DecodeError('JSON decode error')
 
-        except IndexError as err:
-            raise RegexMatchError(
-                'Relative info not found in html with regex: ' + str(err))
-        except json.decoder.JSONDecodeError as err:
-            raise DecodeError('JSON decode error: ' + str(err))
-
-        new_info = def_info.copy()
-        new_info.update(magic_code_group)
-        ocr = ddddocr.DdddOcr()
-        resp = self.sess.get(self.captcha_url)
+        new_info = old_info.copy()
+        new_info['id'] = new_id
+        new_info['name'] = name
+        new_info['number'] = number
+        new_info["date"] = self.get_date()
+        new_info["created"] = round(time.time())
+        new_info["address"] = "浙江省杭州市西湖区"
+        new_info["area"] = "浙江省 杭州市 西湖区"
+        new_info["province"] = new_info["area"].split(' ')[0]
+        new_info["city"] = new_info["area"].split(' ')[1]
         # form change
+        new_info['jrdqtlqk[]'] = 0
+        new_info['jrdqjcqk[]'] = 0
+        new_info['sfsqhzjkk'] = 1   # 是否申领杭州健康码
+        new_info['sqhzjkkys'] = 1   # 杭州健康吗颜色，1:绿色 2:红色 3:黄色
+        new_info['sfqrxxss'] = 1    # 是否确认信息属实
+        new_info['jcqzrq'] = ""
+        new_info['gwszdd'] = ""
         new_info['szgjcs'] = ""
-        new_info['zgfx14rfhsj'] = ""
-        new_info['geo_api_info'] = old_info['geo_api_info'] # 定位
-        new_info['address'] = old_info['address']
-        new_info['area'] = old_info['area']
-        new_info['city'] = old_info['city']
-        new_info['ismoved'] = 0
-        new_info['sfzx'] = old_info['sfzx'] # 在校
-        new_info['sfymqjczrj'] = old_info['sfymqjczrj'] # 入境
-        new_info['sfqrxxss'] = 1 # 属实
-        new_info['campus'] = '玉泉校区' #校区
-        new_info['internship'] = old_info['internship'] # 实习
-        #new_info['verifyCode'] =  ocr.classification(resp.content)#验证码
+        new_info["internship"] = 1
+
+        ocr = ddddocr.DdddOcr(show_ad=False)
+        resp = self.sess.get(self.captcha_url, headers=self.headers)
+        captcha = ocr.classification(resp.content)
+        new_info['verifyCode'] = captcha
+        # 2021.08.05 Fix 2
+        magics = re.findall(r'"([0-9a-f]{32})":\s*"([^\"]+)"', html)
+        for item in magics:
+            new_info[item[0]] = item[1]
 
         self.info = new_info
-        # print(json.dumps(self.info))
         return new_info
 
     def _rsa_encrypt(self, password_str, e_str, M_str):
