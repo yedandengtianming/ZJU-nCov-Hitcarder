@@ -41,6 +41,9 @@ class HitCarder(object):
         # self.sess.headers['User-Agent'] = ua.chrome
         self.sess.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36'}
+        self.headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"
+        }
 
     def login(self):
         """Login to ZJU platform"""
