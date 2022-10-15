@@ -129,8 +129,8 @@ class HitCarder(object):
 
         new_info = def_info.copy()
         new_info.update(magic_code_group)
-        ocr = ddddocr.DdddOcr()
-        resp = self.sess.get(self.captcha_url)
+#         ocr = ddddocr.DdddOcr()
+#         resp = self.sess.get(self.captcha_url)
         # form change
         new_info['szgjcs'] = ""
         new_info['zgfx14rfhsj'] = ""
