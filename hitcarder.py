@@ -141,7 +141,7 @@ class HitCarder(object):
         new_info['gwszdd'] = ""
         new_info['szgjcs'] = ""
         new_info["internship"] = 0
-        new_info["sfymqjczrj"] = 0
+#         new_info["sfymqjczrj"] = 0
 
         #ocr = ddddocr.DdddOcr(show_ad=False)
         #resp = self.sess.get(self.captcha_url, headers=self.headers)
